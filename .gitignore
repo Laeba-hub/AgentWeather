@@ -1,4 +1,6 @@
 venv/
-weather_history.csv
 models/*.pkl
 __pycache__/
+.env
+historical_data.csv
+weather_history.csv

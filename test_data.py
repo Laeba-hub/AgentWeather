@@ -2,12 +2,17 @@ import requests
 import pandas as pd
 import hopsworks
 import datetime
+import os
+from dotenv import load_dotenv
+
+# Load the secret keys from the .env file
+load_dotenv()
 
 # --- 1. KEYS ---
-OPENWEATHER_KEY = "MY_SECRET_KEY"
-AQICN_KEY = "MY_SECRET_KEY"
-HOPSWORKS_KEY = "MY_SECRET_KEY"
-# Choose a city (Must be a major city for AQICN to find it, e.g., London, Karachi, New York)
+OPENWEATHER_KEY = os.getenv("OPENWEATHER_KEY")
+AQICN_KEY = os.getenv("AQICN_KEY")
+HOPSWORKS_KEY = os.getenv("HOPSWORKS_KEY")
+
 CITY = "Karachi"
 
 print(f"Fetching data for {CITY}...\n")
@@ -46,13 +51,14 @@ df = pd.DataFrame(data)
 print("Data collected successfully. Connecting to Hopsworks...")
 
 # --- 5. CONNECT TO HOPSWORKS ---
-# Connect directly
 project = hopsworks.login(
     project="AgentWeather_L", 
     host="eu-west.cloud.hopsworks.ai", 
     port=443,
     api_key_value=HOPSWORKS_KEY
 )
+
+# Force the Feature Store to use the Python engine (avoids Windows Kerberos error)
 fs = project.get_feature_store()
 
 
@@ -68,16 +74,13 @@ fg = fs.get_or_create_feature_group(
 )
 
 # --- 7. INSERT DATA ---
-# --- 7. INSERT DATA (WITH LOCAL FALLBACK) ---
+print("Attempting to push to Hopsworks...")
 try:
-    print("Attempting to push to Hopsworks...")
-    fg.insert(df)
+    fg.insert(df, write_options={"start_offline_materialization": False})
     print("Success! Data pushed to the Hopsworks Cloud.")
 except Exception as e:
-    print(f"\nHopsworks insert failed (Windows HDFS issue).")
+    print(f"\nHopsworks insert failed: {e}")
     print("Executing local fallback...")
-    
-    # Save to a local CSV file to keep the project moving
     df.to_csv("weather_history.csv", mode='a', header=False, index=False)
     print("Success! Data saved locally to weather_history.csv")
 
