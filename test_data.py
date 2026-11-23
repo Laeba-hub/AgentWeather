@@ -18,12 +18,11 @@ LON = 67.0011
 print(f"--- Fetching live data for {CITY} ---")
 
 # --- 1. FETCH LIVE WEATHER (Open-Meteo Primary, OpenWeather Fallback) ---
-temp, humidity, wind_speed, rain = None, None, None, 0.0
+temp, humidity, wind_speed, rain, uv_index = None, None, None, 0.0, 0.0
 
 try:
     print("Attempting to fetch from Open-Meteo (Primary)...")
-    # Open-Meteo live API (current weather)
-    meteo_url = f"https://api.open-meteo.com/v1/forecast?latitude={LAT}&longitude={LON}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto"
+    meteo_url = f"https://api.open-meteo.com/v1/forecast?latitude={LAT}&longitude={LON}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,uv_index&timezone=auto"
     response = requests.get(meteo_url).json()
     
     current = response['current']
@@ -31,12 +30,12 @@ try:
     humidity = current['relative_humidity_2m']
     wind_speed = current['wind_speed_10m']
     rain = current['precipitation']
+    uv_index = current['uv_index']
     print("Open-Meteo Success!")
 
 except Exception as e:
     print(f"Open-Meteo failed: {e}. Falling back to OpenWeather...")
     
-    # Fallback to OpenWeather
     weather_url = f"http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={OPENWEATHER_KEY}&units=metric"
     weather_data = requests.get(weather_url).json()
     
@@ -44,6 +43,7 @@ except Exception as e:
     humidity = weather_data['main']['humidity']
     wind_speed = weather_data['wind']['speed']
     rain = weather_data.get('rain', {}).get('1h', 0.0)
+    uv_index = 0.0
     print("OpenWeather Fallback Success!")
 
 # --- 2. FETCH AQI (AQICN) ---
@@ -61,7 +61,7 @@ data = {
     "humidity": [humidity],
     "wind_speed": [wind_speed],
     "precipitation_mm": [rain],
-    "uv_index": [0.0], # Placeholder
+    "uv_index": [uv_index],
     "aqi": [aqi]
 }
 df = pd.DataFrame(data)

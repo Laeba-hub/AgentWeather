@@ -15,8 +15,7 @@ end_str = end_date.strftime('%Y-%m-%d')
 
 print(f"Fetching historical data from {start_str} to {end_str}...")
 
-# Open-Meteo Historical API (No key required!)
-url = f"https://archive-api.open-meteo.com/v1/archive?latitude={LAT}&longitude={LON}&start_date={start_str}&end_date={end_str}&hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto"
+url = f"https://archive-api.open-meteo.com/v1/archive?latitude={LAT}&longitude={LON}&start_date={start_str}&end_date={end_str}&hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,shortwave_radiation&timezone=auto"
 
 response = requests.get(url)
 data = response.json()
@@ -28,13 +27,13 @@ df.rename(columns={
     'temperature_2m': 'temperature_c',
     'relative_humidity_2m': 'humidity',
     'precipitation': 'precipitation_mm',
-    'wind_speed_10m': 'wind_speed'
+    'wind_speed_10m': 'wind_speed',
+    'shortwave_radiation': 'uv_index'  # <-- Rename it to uv_index
 }, inplace=True)
 
 # Add city and placeholders for AQI/UV
 df['city'] = 'Karachi'
 df['aqi'] = 100 
-df['uv_index'] = 0.0 
 
 df['timestamp'] = pd.to_datetime(df['timestamp'])
 
