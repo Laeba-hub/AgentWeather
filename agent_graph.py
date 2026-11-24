@@ -157,4 +157,4 @@ if __name__ == "__main__":
     print(f"Forecast: {final_state['forecast_temp']:.2f}°C")
     print(f"Alert: {final_state['alert_message']}")
     print(f"Drift Status: {final_state['drift_message']}")
-    print(f"\nNEWS REPORT:\n{final_state['news_report']}")
+    print(f"\nREPORT:\n{final_state['news_report']}")
